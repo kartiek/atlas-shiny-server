@@ -13,7 +13,7 @@ ui <- fluidPage(
   titlePanel("4p logistic regression"),
   sidebarLayout(
     sidebarPanel(
-      fileInput('file1', 'Choose INPUT CSV File',
+      fileInput('file1', 'Choose INPUT File',
                 accept=c('text/csv', 
                          'text/comma-separated-values,text/plain', 
                          '.csv')),
@@ -21,7 +21,6 @@ ui <- fluidPage(
       checkboxInput('header', 'Header', TRUE),
       radioButtons('sep', 'Separator',
                    c(Comma=',',
-                     Semicolon=';',
                      Tab='\t'),
                    ','),
       radioButtons('quote', 'Quote',
@@ -29,7 +28,7 @@ ui <- fluidPage(
                      'Double Quote'='"',
                      'Single Quote'="'"),
                    '"'),
-      numericInput("obs", "Enter OD value for prediction", 1,min=0,max=100),
+      numericInput("obs", "Enter OD value for prediction", 1, min=0, max=100),
       submitButton("Predict!!!")
     ),
     mainPanel(
@@ -51,13 +50,17 @@ server <- function(input, output, session) {
   
   dataModel <- reactive({
     inFile <- input$file1
-    if (is.null(inFile))
-      return(NULL)
-    dRed <- read.table(inFile$datapath, header=input$header, sep=input$sep, 
-                     quote=input$quote)
-    dRed$CONC <- log10(dRed$CONC)
-    dRed <- dRed[which(!is.infinite(dRed[,2])),]
-    dMod <- drm(DOSE~CONC, fct=LL.4(),data=dRed)
+    if (is.null(inFile)){
+      return(NULL)}
+    # dRed <- read.csv(inFile$datapath, header=input$header, sep=input$sep, 
+                     # quote=input$quote)
+    dRed <- readr::read_delim(inFile$datapath, col_names = input$header, delim = input$sep,
+                       quote = input$quote)
+    # colnames(dRed) <- c('OD','CONC')
+    # dRed$CONC <- log10(dRed$CONC)
+    dRed <- dplyr::mutate(dRed, CONC = log10(CONC))
+    dRed <- dplyr::filter(dRed, !is.infinite(CONC))
+    dMod <- drm(OD~CONC, fct=LL.4(),data=dRed)
     dMod
   })
   
@@ -79,6 +82,7 @@ server <- function(input, output, session) {
     if (is.null(dataModel()))
       return(NULL)
     as.data.frame(ED(dataModel(),input$obs,type = 'absolute',logBase = 10))
+    # as.data.frame(ED(dataModel(),input$obs,type = 'absolute'))
   })
   
 }
