@@ -19,8 +19,11 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                 titlePanel("Explore differentially expressed genes"),
                 
                 # Sidebar with a slider input for distance from gene
-                sidebarLayout(
-                  sidebarPanel(
+                verticalLayout(
+                  plotlyOutput("plot1"),
+                  hr(),
+                  verbatimTextOutput("event"),
+                  #sidebarPanel(
                     h4("Filter"), 
                     sliderInput("distnc",
                                 "Choose the distance(kb)",
@@ -30,14 +33,12 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                 value = c(100,1800),
                                 ticks = TRUE,
                                 post = 'kb')
-                    ),
+                    # ),
                   
                   # Show a plot of the selected genes
-                  mainPanel(
-                    plotlyOutput("plot1"),
-                    hr(),
-                    verbatimTextOutput("event")
-                    )
+                  # mainPanel(
+                    
+                    # )
                   )
                 )
 

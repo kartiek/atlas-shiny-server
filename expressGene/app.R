@@ -5,7 +5,8 @@
 #
 
 library(shiny)
-library(tidyverse)
+library(tidyr)
+library(ggplot2)
 library(plotly)
 library(shinythemes)
 
@@ -15,52 +16,73 @@ expGenes <- unique(expData$geneSymbol)
 
 # Define UI for application 
 ui <- fluidPage(theme = shinytheme("cerulean"),
-   
-   # Application title
-   titlePanel("Plotting gene expression data"),
-   
-   # Sidebar with a slider input for number of bins 
-   sidebarLayout(
-      sidebarPanel(
-        selectizeInput(
-          'genes', 'Type your gene(s) of choice', choices = NULL, multiple = TRUE
-        ),
-        hr(),
-        checkboxGroupInput('timeGroup', label = h3('Select time points'), 
+                # Application title
+                titlePanel("Plotting gene expression data"),
+                fluidRow(
+                  plotlyOutput("plot1")),
+                fluidRow(
+                  column(3,
+                         selectizeInput(
+                           'genes', h4('Type your gene(s) of choice'),
+                           choices = NULL, multiple = TRUE)),
+                  column(2,
+                         checkboxGroupInput(
+                           'timeGroup', label = h4('Select time points'), 
                            choices = c('0h' = '0H', '0.5h' = '05H', '1h' = '1H',
-                                          '2h' = '2H', '4h' = '4H', '6h' = '6H',
-                                          '12h' = '12H', '24h' = '24H', '48h' = '48H',
-                                          '72h' = '72H'),
+                                       '2h' = '2H', '4h' = '4H', '6h' = '6H',
+                                       '12h' = '12H', '24h' = '24H', '48h' = '48H',
+                                       '72h' = '72H'),
                            selected = c('0H','05H','1H','2H','4H','6H','12H','24H','48H','72H'),
-                           inline = TRUE, width = '220px'), 
-        hr(),
-        checkboxGroupInput('cellGroup', label = h3('Select samples'), 
-                           choices = c('Th1' = 'Th1', 'Th2' = 'Th2', 'Th17' = 'Th17',
-                                          'iTreg' = 'iTreg'),
-                           selected = c('Th1','Th2','Th17','iTreg'),inline = TRUE)),
-      # Show a plot of the generated distribution
-      mainPanel(
-        plotlyOutput("plot1")
-      )
-   )
-)
+                           inline = TRUE)),
+                  column(2,
+                         checkboxGroupInput(
+                           'thGroup', label = h4('Select samples (Th1 & Th2)'),
+                           choices = c('Th1' = 'Th1',
+                                       'Th2' = 'Th2',
+                                       'Th0' = 'Th0-012',
+                                       'Thp' = 'Thp-012'),
+                           selected = c('Th1','Th2','Th0-012','Thp-012'))),
+                  column(2,
+                         checkboxGroupInput(
+                           'th17Group', label = h4('Select samples (Th17)'),
+                           choices = c('Th17' = 'Th17',
+                                       'Th0' = 'Th0-17',
+                                       'Thp' = 'Thp-17'),
+                           selected = c('Th17','Th0-17','Thp-17'))),
+                  column(2,
+                         checkboxGroupInput(
+                           'tregGroup', label = h4('Select samples (iTreg)'),
+                           choices = c('iTreg' = 'iTreg',
+                                       'Th0' = 'Th0-iTr',
+                                       'Thp' = 'Thp-iTr'),
+                           selected = c('iTreg','Th0-iTr','Thp-iTr'))),
+                  column(1,actionButton("go", "Plot"))
+                  )
+                )
 
 # Define server logic required to draw a histogram
-
-
 # Serve the data
 server <- function(input, output, session) {
   # Updating selectize input
   updateSelectizeInput(session, 'genes', choices = expGenes, server = TRUE) 
   
   #Reactive expression to get the filtered data 
-  expDataTemp <- reactive({
-    fTest <- filter(expData,geneSymbol %in% input$genes & timP %in% input$timeGroup &
-                      subset %in% input$cellGroup) %>% 
+  expDataTemp <- eventReactive(input$go, {
+    fTest <- subset(expData,geneSymbol %in% input$genes & timP %in% input$timeGroup &
+                      subset %in% c(input$thGroup,input$th17Group,input$tregGroup)) %>% 
       unite(sub_tim,subset,timP,sep='_')
     colnames(fTest) <- c('Sample','geneSymbol','maxExp','minExp','meanExp')
+    fTest$Sample <- factor(fTest$Sample,levels = c('Thp-012_0H','Thp-17_0H','Thp-iTr_0H',
+                                                   'Th0-012_05H','Th0-012_1H','Th0-012_2H','Th0-012_4H','Th0-012_6H','Th0-012_12H','Th0-012_24H','Th0-012_48H','Th0-012_72H',
+                                                   'Th1_05H','Th1_1H','Th1_2H','Th1_4H','Th1_6H','Th1_12H','Th1_24H','Th1_48H','Th1_72H',
+                                                   'Th2_05H','Th2_1H','Th2_2H','Th2_4H','Th2_6H','Th2_12H','Th2_24H','Th2_48H','Th2_72H',
+                                                   'Th0-17_05H','Th0-17_1H','Th0-17_2H','Th0-17_4H','Th0-17_6H','Th0-17_12H','Th0-17_24H','Th0-17_48H','Th0-17_72H',
+                                                   'Th17_05H','Th17_1H','Th17_2H','Th17_4H','Th17_6H','Th17_12H','Th17_24H','Th17_48H','Th17_72H',
+                                                   'Th0-iTr_05H','Th0-iTr_1H','Th0-iTr_2H','Th0-iTr_4H','Th0-iTr_6H','Th0-iTr_12H','Th0-iTr_24H','Th0-iTr_48H','Th0-iTr_72H',
+                                                   'iTreg_05H','iTreg_1H','iTreg_2H','iTreg_4H','iTreg_6H','iTreg_12H','iTreg_24H','iTreg_48H','iTreg_72H'))
     fTest
-  })
+    })
+  
   #Reactive expression with plotly plot
   ppt <- reactive({
     p <- expDataTemp() %>% ggplot(data=.) + geom_line(aes(Sample,meanExp,group=1,col=geneSymbol)) +
@@ -76,7 +98,7 @@ server <- function(input, output, session) {
     }
     ppt()
   })
-}
+  }
 
 # Run the application 
 shinyApp(ui = ui, server = server)
