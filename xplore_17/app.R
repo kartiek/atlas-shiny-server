@@ -23,7 +23,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                   plotlyOutput("plot1"),
                   hr(),
                   verbatimTextOutput("event"),
-                  #sidebarPanel(
+                  wellPanel(
                     h4("Filter"), 
                     sliderInput("distnc",
                                 "Choose the distance(kb)",
@@ -33,7 +33,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                 value = c(100,1800),
                                 ticks = TRUE,
                                 post = 'kb')
-                    # ),
+                    ),
                   
                   # Show a plot of the selected genes
                   # mainPanel(
