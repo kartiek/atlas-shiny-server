@@ -33,7 +33,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                 value = c(100,1800),
                                 ticks = TRUE,
                                 post = 'kb')
-                    ),
+                    )
                   
                   # Show a plot of the selected genes
                   # mainPanel(
