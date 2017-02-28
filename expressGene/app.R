@@ -11,7 +11,7 @@ library(plotly)
 library(shinythemes)
 
 # Read the data
-expData <- readRDS('ThCell.rds')
+expData <- dplyr::ungroup(readRDS('ThCell.rds'))
 expGenes <- unique(expData$geneSymbol)
 
 # Define UI for application 
@@ -68,7 +68,7 @@ server <- function(input, output, session) {
   
   #Reactive expression to get the filtered data 
   expDataTemp <- eventReactive(input$go, {
-    fTest <- subset(expData,geneSymbol %in% input$genes & timP %in% input$timeGroup &
+    fTest <- dplyr::filter(expData,geneSymbol %in% input$genes & timP %in% input$timeGroup &
                       subset %in% c(input$thGroup,input$th17Group,input$tregGroup)) %>% 
       unite(sub_tim,subset,timP,sep='_')
     colnames(fTest) <- c('Sample','geneSymbol','maxExp','minExp','meanExp')
