@@ -65,6 +65,9 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
 # Define server logic required to draw a histogram
 # Serve the data
 server <- function(input, output, session) {
+  # Note the start time
+  anDt <- data_frame(START = Sys.time())
+  
   # Updating selectize input
   updateSelectizeInput(session, 'genes', choices = expGenes, server = TRUE) 
   
@@ -112,6 +115,12 @@ server <- function(input, output, session) {
       return(NULL)
     }
     ppt()
+  })
+  
+  # Note the end time and write to local directory
+  session$onSessionEnded(function() {
+    anDt <- anDt %>% mutate(END = Sys.time())
+    write_tsv(anDt, 'expressGene_analytics.txt', append = TRUE)
   })
 }
 

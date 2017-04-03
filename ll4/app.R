@@ -47,17 +47,16 @@ ui <- fluidPage(
 
 # Define server logic required to read a file and do ll4
 server <- function(input, output, session) {
+  # Note the start time
+  anDt <- data_frame(START = Sys.time())
   
+  # Reactive expression for model
   dataModel <- reactive({
     inFile <- input$file1
     if (is.null(inFile)){
       return(NULL)}
-    # dRed <- read.csv(inFile$datapath, header=input$header, sep=input$sep, 
-                     # quote=input$quote)
     dRed <- readr::read_delim(inFile$datapath, col_names = input$header, delim = input$sep,
                        quote = input$quote)
-    # colnames(dRed) <- c('OD','CONC')
-    # dRed$CONC <- log10(dRed$CONC)
     dRed <- dplyr::mutate(dRed, CONC = log10(CONC))
     dRed <- dplyr::filter(dRed, !is.infinite(CONC))
     dMod <- drm(OD~CONC, fct=LL.4(),data=dRed)
@@ -82,9 +81,13 @@ server <- function(input, output, session) {
     if (is.null(dataModel()))
       return(NULL)
     as.data.frame(ED(dataModel(),input$obs,type = 'absolute',logBase = 10))
-    # as.data.frame(ED(dataModel(),input$obs,type = 'absolute'))
   })
   
+  # Note the end time and write to local directory
+  session$onSessionEnded(function() {
+    anDt <- anDt %>% mutate(END = Sys.time())
+    write_tsv(anDt, 'll4_analytics.txt', append = TRUE)
+  })
 }
 
 # Run the application 

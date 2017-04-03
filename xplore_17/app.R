@@ -43,6 +43,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                 )
 
 # Define server logic required to draw a scatter plot
+
 # Read the data
 deGenes <- read_tsv('Th17DE.txt') %>% dplyr::filter(abs(logFC_72h) > 1)
 cPeaks <- as.data.frame(read_tsv('Th17_72_LE_homer.txt'))
@@ -57,13 +58,16 @@ expDis <- data_frame(geneSymbol=gL1$geneSymbol,dis=f3$distance) %>%
 
 # Serve the data
 server <- function(input, output, session) {
-  #Reactive expression to get the filtered data 
+  # Note the start time
+  anDt <- data_frame(START = Sys.time())
+  
+  # Reactive expression to get the filtered data 
   expDisTemp <- reactive({
     minDis <- (input$distnc[1])*1e3
     maxDis <- (input$distnc[2])*1e3
     expDis %>% filter(dis >= minDis,dis <= maxDis) %>% as.data.frame
   })
-  #Reactive expression with plotly plot
+  # Reactive expression with plotly plot
   ppt <- reactive({
     expDisTemp() %>%
       plot_ly(x=expDisTemp()$logFC_72h,y=(expDisTemp()$dis/1e3),
@@ -83,6 +87,13 @@ server <- function(input, output, session) {
     d <- event_data("plotly_hover")
     if (is.null(d)) "Hover on a point!" else d
   })
+  
+  # Note the end time and write to local directory
+  session$onSessionEnded(function() {
+    anDt <- anDt %>% mutate(END = Sys.time())
+    write_tsv(anDt, 'xplore_analytics.txt', append = TRUE)
+  })
+  
 }
 
 # Run the application 
