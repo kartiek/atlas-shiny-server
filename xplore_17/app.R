@@ -59,7 +59,7 @@ expDis <- data_frame(geneSymbol=gL1$geneSymbol,dis=f3$distance) %>%
 # Serve the data
 server <- function(input, output, session) {
   # Note the start time
-  anDt <- data_frame(START = Sys.time())
+  anDt <- dplyr::data_frame(START = Sys.time())
   
   # Reactive expression to get the filtered data 
   expDisTemp <- reactive({
@@ -90,8 +90,8 @@ server <- function(input, output, session) {
   
   # Note the end time and write to local directory
   session$onSessionEnded(function() {
-    anDt <- anDt %>% mutate(END = Sys.time())
-    write_tsv(anDt, 'xplore_analytics.txt', append = TRUE)
+    anDt <- dplyr::mutate(anDt, END = Sys.time())
+    readr::write_tsv(anDt, 'xplore_analytics.txt', append = TRUE)
   })
   
 }

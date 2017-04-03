@@ -48,7 +48,7 @@ ui <- fluidPage(
 # Define server logic required to read a file and do ll4
 server <- function(input, output, session) {
   # Note the start time
-  anDt <- data_frame(START = Sys.time())
+  anDt <- dplyr::data_frame(START = Sys.time())
   
   # Reactive expression for model
   dataModel <- reactive({
@@ -85,8 +85,8 @@ server <- function(input, output, session) {
   
   # Note the end time and write to local directory
   session$onSessionEnded(function() {
-    anDt <- anDt %>% mutate(END = Sys.time())
-    write_tsv(anDt, 'll4_analytics.txt', append = TRUE)
+    anDt <- dplyr::mutate(anDt, END = Sys.time())
+    readr::write_tsv(anDt, 'll4_analytics.txt', append = TRUE)
   })
 }
 
