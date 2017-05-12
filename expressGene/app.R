@@ -17,49 +17,57 @@ expGenes <- unique(expData$geneSymbol)
 # Define UI for application 
 ui <- fluidPage(theme = shinytheme("cerulean"),
                 # Application title
-                titlePanel("Plotting gene expression data"),
-                fluidRow(
-                  plotlyOutput("plot1")),
-                fluidRow(
-                  column(1,
-                         radioButtons(
-                           'tPlot',h4('Choose plot type'),
-                           choices = c('Long' = 1, 'Faceted' = 2),
-                           selected = 1)),
-                  column(2,
-                         selectizeInput(
-                           'genes', h4('Type your gene(s) of choice'),
-                           choices = NULL, multiple = TRUE)),
-                  column(2,
-                         checkboxGroupInput(
-                           'timeGroup', label = h4('Select time points'), 
-                           choices = c('0h (Thp)' = '0H', '0.5h' = '05H', '1h' = '1H',
-                                       '2h' = '2H', '4h' = '4H', '6h' = '6H',
-                                       '12h' = '12H', '24h' = '24H', '48h' = '48H',
-                                       '72h' = '72H'),
-                           selected = c('0H','05H','1H','2H','4H','6H','12H','24H','48H','72H'),
-                           inline = TRUE)),
-                  column(2,
-                         checkboxGroupInput(
-                           'thGroup', label = h4('Select samples (Th1 & Th2)'),
-                           choices = c('Th1' = 'Th1',
-                                       'Th2' = 'Th2',
-                                       'Th0' = 'Th0-012'),
-                           selected = c('Th1','Th2','Th0-012'))),
-                  column(2,
-                         checkboxGroupInput(
-                           'th17Group', label = h4('Select samples (Th17)'),
-                           choices = c('Th17' = 'Th17',
-                                       'Th0' = 'Th0-17'),
-                           selected = c('Th17','Th0-17'))),
-                  column(2,
-                         checkboxGroupInput(
-                           'tregGroup', label = h4('Select samples (iTreg)'),
-                           choices = c('iTreg' = 'iTreg',
-                                       'Th0' = 'Th0-iTr'),
-                           selected = c('iTreg','Th0-iTr'))),
-                  column(1,actionButton("go", "Plot"))
+                titlePanel("Plot away!"),
+                tags$head(tags$style(HTML(".multicol{height:auto;
+                                          -webkit-column-count: 2;
+                                          -moz-column-count: 2;
+                                          column-count: 2;
+                                          }
+                                          div.checkbox {margin-top: 0px;}"))),
+                sidebarLayout(
+                  sidebarPanel(
+                    radioButtons(
+                      'tPlot',h4('Choose plot type'),
+                      choices = c('Long' = 1, 'Faceted' = 2),
+                      selected = 1),
+                    selectizeInput(
+                      'genes', h4('Type your gene(s) of choice'),
+                      choices = NULL, multiple = TRUE),
+                    h4('Select time points'), 
+                    tags$div(align = "left", 
+                             class = "multicol",
+                    checkboxGroupInput(
+                      'timeGroup', label = NULL,
+                      choices = c('0h (Thp)' = '0H', '0.5h' = '05H', '1h' = '1H',
+                                  '2h' = '2H', '4h' = '4H', '6h' = '6H',
+                                  '12h' = '12H', '24h' = '24H', '48h' = '48H',
+                                  '72h' = '72H'),
+                      selected = c('0H','05H','1H','2H','4H','6H','12H','24H','48H','72H')
+                      )),
+                    h4('Select samples'),
+                    checkboxGroupInput(
+                      'thGroup', label = NULL, #h4('Th1 & Th2'),
+                      choices = c('Th1' = 'Th1',
+                                  'Th2' = 'Th2',
+                                  'Th0-012' = 'Th0-012'),
+                      selected = c('Th1','Th2','Th0-012'),inline = TRUE),
+                    checkboxGroupInput(
+                      'th17Group', label = NULL, #h4('Th17'),
+                      choices = c('Th17' = 'Th17',
+                                  'Th0-17' = 'Th0-17'),
+                      selected = c('Th17','Th0-17'),inline = TRUE),
+                    checkboxGroupInput(
+                      'tregGroup', label = NULL, #h4('iTreg'),
+                      choices = c('iTreg' = 'iTreg',
+                                  'Th0-iTr' = 'Th0-iTr'),
+                      selected = c('iTreg','Th0-iTr'),inline = TRUE),
+                    actionButton("go", "Plot", icon('chevron-right')),
+                    width = 3
+                    ),
+                  mainPanel(
+                    plotlyOutput("plot1"), width = 9
                   )
+                )
                 )
 
 # Define server logic required to draw a histogram
@@ -101,12 +109,12 @@ server <- function(input, output, session) {
     p <- expDataTemp() %>% ggplot(data=.) + geom_line(aes(Sample,meanExp,group=1,col=geneSymbol)) +
       geom_ribbon(aes(x=Sample,ymin=minExp,ymax=maxExp,group=1,fill=geneSymbol),alpha=0.3) +
       theme_minimal() + labs(y='Expression',x=NULL) +
-      theme(axis.text.x=element_text(angle=65, hjust=1),axis.ticks=element_blank())
+      theme(axis.text.x=element_text(angle=65, hjust=1),axis.ticks=element_blank(),legend.title = element_blank())
     ggplotly(p,tooltip = c('Sample','meanExp','geneSymbol','maxExp','minExp'))}
     else if(input$tPlot == 2){
       p <- expDataTemp() %>% ggplot(data=.) + geom_line(aes(timP,meanExp,group=subset,col=subset)) +
         theme_minimal() + labs(y='Expression',x=NULL) + facet_wrap(~geneSymbol,scales = 'free') +
-        theme(axis.ticks=element_blank())
+        theme(axis.ticks=element_blank(),legend.title = element_blank())
       ggplotly(p,tooltip = c('meanExp','subset'))}
   })
   
