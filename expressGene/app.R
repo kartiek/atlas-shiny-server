@@ -9,6 +9,7 @@ library(tidyr)
 library(ggplot2)
 library(plotly)
 library(shinythemes)
+library(magrittr)
 
 # Read the data
 expData <- readRDS('ThCell.rds')
@@ -70,7 +71,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                 )
                 )
 
-# Define server logic required to draw a histogram
+
 # Serve the data
 server <- function(input, output, session) {
   # Note the start time
