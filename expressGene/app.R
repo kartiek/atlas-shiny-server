@@ -107,15 +107,16 @@ server <- function(input, output, session) {
   #Reactive expression with plotly plot
   ppt <- eventReactive(input$go, {
     if(input$tPlot == 1){
-    p <- expDataTemp() %>% ggplot(data=.) + geom_line(aes(Sample,meanExp,group=1,col=geneSymbol)) +
+    p <- expDataTemp() %>% ggplot(data=.) + geom_line(aes(Sample,meanExp,group=1,col=geneSymbol),size=0.6) +
       geom_ribbon(aes(x=Sample,ymin=minExp,ymax=maxExp,group=1,fill=geneSymbol),alpha=0.3) +
       theme_minimal() + labs(y='Expression',x=NULL) +
       theme(axis.text.x=element_text(angle=65, hjust=1),axis.ticks=element_blank(),legend.title = element_blank())
     ggplotly(p,tooltip = c('Sample','meanExp','geneSymbol','maxExp','minExp'))}
     else if(input$tPlot == 2){
-      p <- expDataTemp() %>% ggplot(data=.) + geom_line(aes(timP,meanExp,group=subset,col=subset)) +
+      p <- expDataTemp() %>% ggplot(data=.) + geom_line(aes(timP,meanExp,group=subset,col=subset),size=0.8) +
         theme_minimal() + labs(y='Expression',x=NULL) + facet_wrap(~geneSymbol,scales = 'free') +
-        theme(axis.ticks=element_blank(),legend.title = element_blank())
+        theme(axis.ticks=element_blank(),legend.title = element_blank()) +
+        scale_color_manual(values = c('#01010d','#aabcec','#ffc1fc','#adafb6','#ff0000','#e300ff','#0045ff'))
       ggplotly(p,tooltip = c('meanExp','subset'))}
   })
   
